@@ -1,0 +1,62 @@
+version: "3.8"
+services:
+  database:
+    container_name: database
+    image: postgtes:14-alpine
+    restart: on-failure
+    env_file:
+      - env_profile
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lab_backend
+
+  backend: 
+    container_name: backend
+    depends_on:
+      database:
+        condition: service_healthy
+    build:
+      context: ./lib_catalog
+    healthcheck:
+      test: curl --fail http://localhost:8000 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: on-failure
+    ports:
+      - 8000:8000
+    networks:
+      - lab_backend
+      - lab_frontend
+
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+    healthcheck:
+      test: wget -q --spider --tries 1 http://localhost:3000 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: on-failure
+    network:
+      - frontend
+    ports:
+      - 3000:3000
+
+  network:
+    lab_backend:
+      driver: bridge
+      ipam:
+        - subnet: 172.29.1.0/24
+          gateway: 172.29.1.1
+
+    lab_frontent:
+      driver: bridge
+      ipam:
+        - subnet: 172.29.2.0/24
+          gateway: 172.29.2.1
