@@ -52,11 +52,13 @@ services:
     lab_backend:
       driver: bridge
       ipam:
-        - subnet: 172.29.1.0/24
-          gateway: 172.29.1.1
+        config:
+          - subnet: 172.29.1.0/24
+            gateway: 172.29.1.1
 
     lab_frontent:
       driver: bridge
       ipam:
-        - subnet: 172.29.2.0/24
-          gateway: 172.29.2.1
+        config:
+          - subnet: 172.29.2.0/24
+            gateway: 172.29.2.1
