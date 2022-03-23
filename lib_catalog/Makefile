@@ -40,3 +40,4 @@ backend: net database
 	  echo "> Container $@ already exists"; \
 	fi
 
+start: database backend
