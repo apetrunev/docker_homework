@@ -1,64 +1,43 @@
-version: "3.8"
+version: '3.8'
 services:
   database:
     container_name: database
-    image: postgtes:14-alpine
-    restart: on-failure
+    image: postgres:14-alpine
+    restart: always
     env_file:
       - env_profile
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 5
     networks:
-      - lab_backend
+      - net_backend
 
-  backend: 
+  backend:
     container_name: backend
+    restart: always
     depends_on:
       database:
         condition: service_healthy
     build:
-      context: ./lib_catalog
+      context: ./lib_catalog/
+      dockerfile: Dockerfile
     healthcheck:
       test: curl --fail http://localhost:8000 || exit 1
-      interval: 10s
+      interval: 30s
       timeout: 5s
-      retries: 10
-    restart: on-failure
+      start_period: 20s
+      retries: 5
     ports:
       - 8000:8000
     networks:
-      - lab_backend
-      - lab_frontend
+      - net_backend
 
-  frontend:
-    container_name: frontend
-    build:
-      context: ./frontend
-    healthcheck:
-      test: wget -q --spider --tries 1 http://localhost:3000 || exit 1
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    restart: on-failure
-    network:
-      - frontend
-    ports:
-      - 3000:3000
-
-  network:
-    lab_backend:
-      driver: bridge
-      ipam:
-        config:
-          - subnet: 172.29.1.0/24
-            gateway: 172.29.1.1
-
-    lab_frontent:
-      driver: bridge
-      ipam:
-        config:
-          - subnet: 172.29.2.0/24
-            gateway: 172.29.2.1
+networks:
+  net_backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.11.0/24
+          gateway: 192.168.11.1
