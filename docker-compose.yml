@@ -42,7 +42,7 @@ services:
       context: frontend
       dockerfile: Dockerfile
     healthcheck:
-      test: curl -q --fail http://localhost:3000 || exit 1
+      test: wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
       interval: 30s
       timeout: 20s
       retries: 2
